@@ -7,17 +7,25 @@ import GetBarangay from "./screen/GetBarangay";
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false); // Manage login state
+  const [authToken, setAuthToken] = useState(""); // This is required!
 
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Login setIsLoggedIn={setIsLoggedIn} />} />
+        <Route
+          path="/"
+          element={
+            <Login setIsLoggedIn={setIsLoggedIn} setAuthToken={setAuthToken} />
+          }
+        />
         <Route
           path="/home"
-          element={<Home isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />}
+          element={
+            <Home isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />
+          }
         />
         <Route path="/add-candidate" element={<AddCandidate />} />
-        <Route path="/get-barangay" element={<GetBarangay/>} />
+        <Route path="/get-barangay" element={<GetBarangay />} />
       </Routes>
     </Router>
   );

@@ -2,22 +2,47 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/Login.css";
 
-function Login({ setIsLoggedIn }) {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const navigate = useNavigate(); // Used for navigation
+function Login({ setIsLoggedIn, setAuthToken }) {
+  const [email, setEmail] = useState(""); // Email input
+  const [password, setPassword] = useState(""); // Password input
+  const [error, setError] = useState(""); // Error message
+  const [isLoading, setIsLoading] = useState(false); // Loading state
+  const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Check static credentials
-    if (username === "admin" && password === "admin123") {
-      setIsLoggedIn(true); // ✅ Set login state to true
-      setError("");
-      navigate("/home"); // Redirect to Home after successful login
-    } else {
-      setError("Invalid username or password");
+    setIsLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch("http://localhost:3000/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Login failed");
+      }
+
+      // Store token in state and localStorage
+      const token = data.token;
+      setAuthToken(token);
+      localStorage.setItem("authToken", token);
+
+      setIsLoggedIn(true);
+      navigate("/home");
+    } catch (err) {
+      setError(err.message || "Login failed. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -30,20 +55,24 @@ function Login({ setIsLoggedIn }) {
           {error && <div className="error-message">{error}</div>}
 
           <div className="input-group">
-            <label htmlFor="username" className="input-label">Username</label>
+            <label htmlFor="email" className="input-label">
+              Email
+            </label>
             <input
-              type="text"
-              id="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              type="email"
+              id="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="input-field"
-              placeholder="Enter username"
+              placeholder="Enter admin email"
               required
             />
           </div>
 
           <div className="input-group">
-            <label htmlFor="password" className="input-label">Password</label>
+            <label htmlFor="password" className="input-label">
+              Password
+            </label>
             <input
               type="password"
               id="password"
@@ -55,7 +84,9 @@ function Login({ setIsLoggedIn }) {
             />
           </div>
 
-          <button type="submit" className="login-button">Login</button>
+          <button type="submit" className="login-button" disabled={isLoading}>
+            {isLoading ? "Logging in..." : "Login"}
+          </button>
         </form>
       </div>
     </div>
